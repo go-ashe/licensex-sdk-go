@@ -17,6 +17,7 @@ func TestGenerateMachineCodeLicenseXCompatibility(t *testing.T) {
 	for _, uuid := range []string{
 		"123e4567-e89b-12d3-a456-426614174000",
 		" 123E4567-E89B-12D3-A456-426614174000\n",
+		"123E4567-E89B-12D3-A456-426614174000\r\n",
 		"{123E4567-E89B-12D3-A456-426614174000}",
 	} {
 		code, err := GenerateMachineCode(" RCS100 ", uuid)

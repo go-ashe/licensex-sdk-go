@@ -15,7 +15,7 @@ LicenseX Go SDK 为 Go 应用提供绑定设备的离线授权管理能力，用
 ## 运行环境
 
 - Go **1.27.0 及以上**，以 [go.mod](go.mod) 为准。
-- 自动采集设备 UUID 支持 Linux（DMI UUID）和 macOS（IOPlatformUUID）。
+- 自动采集设备 UUID 支持 Linux（DMI UUID）、macOS（IOPlatformUUID）和 Windows（通过 PowerShell Get-CimInstance 读取 Win32_ComputerSystemProduct.UUID）。Windows 需要可用的 `powershell.exe` 和 CIM 命令。macOS 和 Windows 的采集命令均设置 5 秒超时。
 - 容器、其他系统或无法自动采集的部署环境，可通过 `ManagerOptions.DeviceUUID` 显式传入稳定、可信的部署设备 UUID。自动采集失败会返回错误，不生成随机身份作为替代。
 
 ## 安装方法

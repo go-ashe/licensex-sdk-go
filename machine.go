@@ -16,7 +16,7 @@ import (
 )
 
 // MachineCode 读取本机硬件 UUID，并生成绑定产品的机器码。
-// Linux 使用 DMI UUID，macOS 使用 IOPlatformUUID；其他系统返回错误。
+// Linux 使用 DMI UUID，macOS 使用 IOPlatformUUID，Windows 使用 Win32_ComputerSystemProduct.UUID。
 // 采集失败时不生成默认或随机身份。返回值不包含原始 UUID。
 func MachineCode(productID string) (string, error) {
 	if strings.TrimSpace(productID) == "" {
@@ -67,12 +67,28 @@ func normalizeDeviceUUID(value string) (string, error) {
 	return uuid, nil
 }
 
-// readDeviceUUID 按操作系统采集并校验硬件 UUID；macOS 命令最多执行 5 秒。
+// readDeviceUUID 按操作系统采集并校验硬件 UUID；macOS 和 Windows 命令最多执行 5 秒。
 // 不支持的系统或采集失败时返回错误，不生成替代身份。
 func readDeviceUUID() (string, error) {
 	switch runtime.GOOS {
 	case "linux":
 		return readDeviceUUIDFiles("/sys/class/dmi/id/product_uuid", "/sys/devices/virtual/dmi/id/product_uuid")
+	case "windows":
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		data, err := exec.CommandContext(ctx, "powershell.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command",
+			"$ErrorActionPreference = 'Stop'; (Get-CimInstance -ClassName Win32_ComputerSystemProduct -Property UUID).UUID").Output()
+		if err != nil {
+			if ctx.Err() != nil {
+				err = ctx.Err()
+			}
+			return "", fmt.Errorf("licensex: read Windows hardware UUID: %w", err)
+		}
+		uuid, err := normalizeDeviceUUID(string(data))
+		if err != nil {
+			return "", fmt.Errorf("licensex: invalid Windows hardware UUID: %w", err)
+		}
+		return uuid, nil
 	case "darwin":
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()

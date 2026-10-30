@@ -15,7 +15,7 @@ LicenseX SDK for Go provides machine-bound, offline license management for Go ap
 ## Requirements
 
 - Go **1.27.0 or later**, as specified in [go.mod](go.mod).
-- Automatic device UUID collection supports Linux (DMI UUID) and macOS (IOPlatformUUID).
+- Automatic device UUID collection supports Linux (DMI UUID), macOS (IOPlatformUUID), and Windows (Win32_ComputerSystemProduct.UUID via PowerShell Get-CimInstance). Windows requires `powershell.exe` and the CIM cmdlets to be available. Commands on macOS and Windows have a 5-second timeout.
 - For containers, other systems, or deployments where automatic collection is unavailable, supply a stable, trusted deployment device UUID through `ManagerOptions.DeviceUUID`. Collection failures return an error; the SDK does not generate a random fallback identity.
 
 ## Installation
